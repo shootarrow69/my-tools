@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -395,6 +394,7 @@
             display: flex;
             gap: 16px;
             justify-content: flex-start;
+            align-items: flex-start;
             width: 100%;
         }
 
@@ -434,33 +434,28 @@
             padding: 8px 10px;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
-            justify-content: space-between;
+            box-sizing: border-box;
         }
 
         .card-date {
             font-size: 10px;
             font-weight: 700;
             color: var(--accent-color);
-            margin-bottom: 2px;
-            white-space: pre-line;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            margin: 0 0 4px 0;
+            padding: 0;
             line-height: 1.15;
+            white-space: pre-line;
+            overflow: hidden;
         }
 
         .card-title {
             font-size: 11px;
             font-weight: 700;
             color: var(--text-main);
-            margin: 0 0 2px 0;
+            margin: 0 0 4px 0;
+            padding: 0;
             line-height: 1.15;
             white-space: pre-line;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
@@ -468,11 +463,9 @@
             font-size: 10px;
             color: var(--text-secondary);
             margin: 0;
+            padding: 0;
             line-height: 1.2;
             white-space: pre-line;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
@@ -652,7 +645,7 @@
         <div class="form-row">
             <div class="form-group">
                 <label>Дата / Место:</label>
-                <textarea id="cardDate" rows="2" placeholder="Например: 10.09 | МП «Корпус»"></textarea>
+                <textarea id="cardDate" rows="2" placeholder="Например: 10 сентября, 15:00 | Актовый зал"></textarea>
             </div>
 
             <div class="form-group">
@@ -2044,11 +2037,23 @@
                     ? escapeHtml(card.img)
                     : 'https://placehold.co/400x300?text=Нет+фото';
 
+            // ВАЖНО: текст вставляется вплотную к тегам, без переносов строк
+            // и пробелов внутри — иначе white-space: pre-line покажет пустые строки.
+            const dateHtml = card.date
+                ? `<div class="card-date">${escapeHtml(card.date)}</div>`
+                : '';
+
+            const titleHtml = card.title
+                ? `<h3 class="card-title">${escapeHtml(card.title)}</h3>`
+                : '';
+
+            const descHtml = card.desc
+                ? `<p class="card-desc">${escapeHtml(card.desc)}</p>`
+                : '';
+
             return `
                 <article class="card">
-
                     <div class="card-img-container">
-
                         <img
                             src="${imageSrc}"
                             class="card-img"
@@ -2056,29 +2061,8 @@
                             crossorigin="anonymous"
                             onerror="this.src='https://placehold.co/400x300?text=Нет+фото'"
                         >
-
                     </div>
-
-                    <div class="card-body">
-
-                        <div>
-
-                            <div class="card-date">
-                                ${escapeHtml(card.date || '')}
-                            </div>
-
-                            <h3 class="card-title">
-                                ${escapeHtml(card.title || '')}
-                            </h3>
-
-                            <p class="card-desc">
-                                ${escapeHtml(card.desc || '')}
-                            </p>
-
-                        </div>
-
-                    </div>
-
+                    <div class="card-body">${dateHtml}${titleHtml}${descHtml}</div>
                 </article>
             `;
         }
@@ -2304,4 +2288,3 @@
 
 </body>
 </html>
-```
