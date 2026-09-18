@@ -1,0 +1,2307 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отчет мероприятий — Дом Молодёжи</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Unbounded:wght@700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #F6F6F9;
+            --card-bg: #FDFCFD;
+            --text-main: #010101;
+            --text-secondary: #505151;
+            --accent-color: #5E00B6;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #1e1e1e;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .top-control-panel, .slides-nav-bar, .admin-panel {
+            width: 100%;
+            max-width: 1280px;
+            background: #ffffff;
+            padding: 16px 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .top-control-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mode-switch {
+            display: flex;
+            gap: 8px;
+            background: #f0f0f5;
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: #ffffff;
+            color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .admin-toggle-btn {
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .slides-nav-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .slide-tab {
+            background: #f0f0f5;
+            border: 2px solid transparent;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .slide-tab.active {
+            background: #fff;
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .admin-panel {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .admin-panel.open {
+            display: flex;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .admin-cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            background: #f9f9fb;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .admin-card-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            cursor: grab;
+            user-select: none;
+            transition: background 0.15s, border-color 0.15s;
+            border: 1px solid transparent;
+            gap: 10px;
+        }
+
+        .admin-card-item:active {
+            cursor: grabbing;
+        }
+
+        .admin-card-item.dragging {
+            opacity: 0.4;
+            background: #eaeaf0;
+        }
+
+        .admin-card-item.drag-over {
+            border-color: var(--accent-color);
+            background: #f4eeff;
+        }
+
+        .admin-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drag-handle {
+            color: #aaa;
+            font-weight: bold;
+            cursor: grab;
+        }
+
+        .admin-actions-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            background: #f0f0f5;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-main);
+        }
+
+        .action-btn.dup {
+            background: #e0e0ff;
+            color: var(--accent-color);
+        }
+
+        .action-btn.dup:hover {
+            background: #d0d0ff;
+        }
+
+        .action-btn.del {
+            background: #ff4d4d;
+            color: #fff;
+        }
+
+        .action-btn.del:hover {
+            background: #e03b3b;
+        }
+
+        /* РЕЗЕРВНАЯ КОПИЯ */
+
+        .backup-panel {
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .backup-panel h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--text-main);
+        }
+
+        .backup-description {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.45;
+            color: var(--text-secondary);
+        }
+
+        #backupCode {
+            width: 100%;
+            min-height: 90px;
+            resize: vertical;
+            padding: 12px 14px;
+            box-sizing: border-box;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+        }
+
+        #backupCode:focus {
+            border-color: var(--accent-color);
+        }
+
+        .backup-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .backup-btn {
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .backup-btn.secondary {
+            background: #505151;
+        }
+
+        .backup-status {
+            min-height: 18px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* СЛАЙД 16:9 */
+
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            background-color: var(--bg-color);
+            padding: 30px 50px 20px 50px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            margin-bottom: 40px;
+        }
+
+        .slide-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-shrink: 0;
+            margin-bottom: 8px;
+            height: 45px;
+        }
+
+        .slide-title {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 24px;
+            color: var(--accent-color);
+            margin: 0;
+            text-align: left;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            overflow: hidden;
+            padding-bottom: 5px;
+        }
+
+        .layout-1 {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .layout-1 .card {
+            width: 460px;
+        }
+
+        .layout-2 {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .layout-2 .card {
+            width: 420px;
+        }
+
+        .layout-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .grid-row {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            position: relative;
+            width: 265px;
+            flex-shrink: 0;
+        }
+
+        .card-img-container {
+            width: 100%;
+            padding-top: 70%;
+            position: relative;
+            overflow: hidden;
+            background: #f0f0f5;
+            flex-shrink: 0;
+        }
+
+        .card-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        .card-body {
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .card-date {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 2px;
+            white-space: pre-line;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.15;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 2px 0;
+            line-height: 1.15;
+            white-space: pre-line;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-desc {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.2;
+            white-space: pre-line;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .slide-footer {
+            height: 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .footer-text {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent-color);
+            letter-spacing: 0.5px;
+        }
+
+        .page-number {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        body.export-mode {
+            background-color: transparent !important;
+            padding: 0 !important;
+        }
+
+        body.export-mode .top-control-panel,
+        body.export-mode .slides-nav-bar,
+        body.export-mode .admin-panel {
+            display: none !important;
+        }
+
+        body.export-mode .slide-container {
+            box-shadow: none !important;
+            margin: 0 !important;
+            background-color: transparent !important;
+        }
+
+        body.export-mode .card {
+            box-shadow: none !important;
+        }
+
+        .color-input {
+            width: 40px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+            background: none;
+        }
+
+        .drop-zone {
+            border: 2px dashed #ccc;
+            padding: 12px;
+            text-align: center;
+            border-radius: 12px;
+            background: #fafafa;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .drop-zone.dragover {
+            background: #f0e6ff;
+            border-color: var(--accent-color);
+        }
+
+        @media (max-width: 1320px) {
+            .slide-container {
+                transform-origin: top center;
+                transform: scale(min(calc((100vw - 40px) / 1280), 1));
+                margin-bottom: calc(40px - (720px * (1 - min(calc((100vw - 40px) / 1280), 1))));
+            }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .top-control-panel,
+            .slides-nav-bar,
+            .admin-panel {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body id="mainBody">
+
+    <div class="top-control-panel">
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <button class="admin-toggle-btn" onclick="toggleAdmin()">⚙️ Настроить слайд</button>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 13px; font-weight: 700; color: #666;">Цвет:</span>
+                <input type="color" class="color-input" id="colorPicker" value="#5E00B6" onchange="updateAccent(this.value)">
+            </div>
+        </div>
+
+        <div class="mode-switch">
+            <button class="mode-btn active" id="modeScreen">Экран</button>
+
+            <button
+                class="mode-btn"
+                style="background: #27ae60; color: #fff;"
+                onclick="exportCurrentSlidePng()">
+                💾 Сохранить PNG + тень
+            </button>
+        </div>
+    </div>
+
+    <div class="slides-nav-bar">
+        <div id="tabsList" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+
+        <button
+            class="slide-tab"
+            style="background: var(--accent-color); color: #fff;"
+            onclick="addSlide()">
+            + Новый слайд
+        </button>
+
+        <button
+            class="slide-tab"
+            style="background: #4a90e2; color: #fff;"
+            onclick="duplicateSlide()">
+            📋 Дублировать
+        </button>
+
+        <button
+            class="slide-tab"
+            style="background: #ff4d4d; color: #fff; margin-left: auto;"
+            onclick="removeSlide()">
+            Удалить слайд
+        </button>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Заголовок слайда:</label>
+                <input
+                    type="text"
+                    id="editMainTitle"
+                    oninput="saveCurrent()"
+                    placeholder="Например: События 7–13 сентября">
+            </div>
+
+            <div class="form-group">
+                <label>Текст футера:</label>
+                <input
+                    type="text"
+                    id="editFooter"
+                    oninput="saveCurrent()"
+                    placeholder="Например: СПб ГБУ «Дом Молодёжи»">
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee;">
+
+        <h3>Порядок карточек (перетаскивайте мышкой):</h3>
+
+        <div class="admin-cards-list" id="adminCardsList"></div>
+
+        <h3 style="margin-top: 10px;">Добавить новую карточку (макс. 8)</h3>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Дата / Место:</label>
+                <textarea id="cardDate" rows="2" placeholder="Например: 10.09 | МП «Корпус»"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Заголовок события:</label>
+                <textarea id="cardTitle" rows="2" placeholder="Введите название события..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Описание:</label>
+            <textarea id="cardDesc" rows="3" placeholder="Введите краткое описание или подробности..."></textarea>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Фото карточки (файл или ссылка):</label>
+
+            <input
+                type="text"
+                id="cardImg"
+                placeholder="https://example.com/image.jpg">
+
+            <div
+                class="drop-zone"
+                id="dropZone"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+                ondrop="handleDrop(event)">
+                Перетащите изображение сюда или кликните для выбора
+            </div>
+
+            <input
+                type="file"
+                id="fileInputCard"
+                accept="image/*"
+                style="display: none;"
+                onchange="handleCardFileSelect(event)">
+        </div>
+
+        <button
+            class="btn"
+            style="background: var(--accent-color); color: #fff; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 5px;"
+            onclick="addCard()">
+            Добавить карточку
+        </button>
+
+        <!-- РЕЗЕРВНАЯ КОПИЯ -->
+        <div class="backup-panel">
+
+            <h3>Резервная копия отчёта</h3>
+
+            <p class="backup-description">
+                Сохраните код отчёта, чтобы восстановить все слайды и карточки позже,
+                даже если данные в браузере были очищены.
+            </p>
+
+            <textarea
+                id="backupCode"
+                placeholder="Здесь появится код отчёта. Его можно сохранить в заметки или отправить самому себе."></textarea>
+
+            <div class="backup-buttons">
+
+                <button
+                    class="backup-btn"
+                    onclick="createBackup()">
+                    Сохранить код
+                </button>
+
+                <button
+                    class="backup-btn secondary"
+                    onclick="restoreBackup()">
+                    Восстановить из кода
+                </button>
+
+            </div>
+
+            <div
+                class="backup-status"
+                id="backupStatus">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div
+        id="slidesViewport"
+        style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    </div>
+
+
+    <script>
+
+        const STORAGE_KEY = 'dm_report_db_v19';
+        const DEFAULT_ACCENT = '#5E00B6';
+        const MAX_CARDS = 8;
+
+        const DEFAULT_DB = {
+            accent: DEFAULT_ACCENT,
+            slides: [{
+                title: "События 7–13 сентября",
+                footer: "СПб ГБУ «Дом Молодёжи Приморского района»",
+                cards: []
+            }]
+        };
+
+        function createDefaultDb() {
+            return JSON.parse(JSON.stringify(DEFAULT_DB));
+        }
+
+        function loadDb() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+
+                if (!raw) {
+                    return createDefaultDb();
+                }
+
+                const parsed = JSON.parse(raw);
+
+                if (
+                    !parsed ||
+                    !Array.isArray(parsed.slides) ||
+                    parsed.slides.length === 0
+                ) {
+                    return createDefaultDb();
+                }
+
+                parsed.accent =
+                    typeof parsed.accent === 'string'
+                        ? parsed.accent
+                        : DEFAULT_ACCENT;
+
+                parsed.slides = parsed.slides.map(slide => ({
+                    title:
+                        typeof slide.title === 'string'
+                            ? slide.title
+                            : 'Новый слайд',
+
+                    footer:
+                        typeof slide.footer === 'string'
+                            ? slide.footer
+                            : '',
+
+                    cards:
+                        Array.isArray(slide.cards)
+                            ? slide.cards.map(card => ({
+                                date:
+                                    typeof card.date === 'string'
+                                        ? card.date
+                                        : '',
+
+                                title:
+                                    typeof card.title === 'string'
+                                        ? card.title
+                                        : '',
+
+                                desc:
+                                    typeof card.desc === 'string'
+                                        ? card.desc
+                                        : '',
+
+                                img:
+                                    typeof card.img === 'string'
+                                        ? card.img
+                                        : ''
+                            }))
+                            : []
+                }));
+
+                return parsed;
+
+            } catch (error) {
+
+                console.error(
+                    'Не удалось загрузить данные:',
+                    error
+                );
+
+                return createDefaultDb();
+            }
+        }
+
+        let db = loadDb();
+        let activeIdx = 0;
+        let tempCardImage = "";
+        let draggedCardIdx = null;
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInputCard = document.getElementById('fileInputCard');
+
+        dropZone.addEventListener('click', () => fileInputCard.click());
+
+
+        function escapeHtml(value = '') {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+
+        function saveDb() {
+            try {
+
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify(db)
+                );
+
+            } catch (error) {
+
+                console.error(
+                    'Не удалось сохранить данные:',
+                    error
+                );
+
+                alert(
+                    'Не удалось сохранить данные. Возможно, localStorage переполнен.'
+                );
+            }
+        }
+
+
+        function updateAccent(color) {
+
+            db.accent = color;
+
+            document.documentElement.style.setProperty(
+                '--accent-color',
+                color
+            );
+
+            saveDb();
+        }
+
+
+        function toggleAdmin() {
+
+            document
+                .getElementById('adminPanel')
+                .classList
+                .toggle('open');
+        }
+
+
+        function saveCurrent() {
+
+            const slide = db.slides[activeIdx];
+
+            if (!slide) return;
+
+            slide.title =
+                document.getElementById('editMainTitle').value;
+
+            slide.footer =
+                document.getElementById('editFooter').value;
+
+            saveDb();
+            render();
+        }
+
+
+        function addSlide() {
+
+            const footer =
+                db.slides[0]?.footer || '';
+
+            db.slides.push({
+                title: "Новый слайд",
+                footer,
+                cards: []
+            });
+
+            activeIdx =
+                db.slides.length - 1;
+
+            saveDb();
+            render();
+        }
+
+
+        function duplicateSlide() {
+
+            const current =
+                db.slides[activeIdx];
+
+            if (!current) return;
+
+            const clone =
+                JSON.parse(JSON.stringify(current));
+
+            clone.title =
+                `${clone.title} (Копия)`;
+
+            db.slides.splice(
+                activeIdx + 1,
+                0,
+                clone
+            );
+
+            activeIdx += 1;
+
+            saveDb();
+            render();
+        }
+
+
+        function removeSlide() {
+
+            if (db.slides.length <= 1) {
+
+                alert(
+                    'Нельзя удалить последний слайд.'
+                );
+
+                return;
+            }
+
+            db.slides.splice(
+                activeIdx,
+                1
+            );
+
+            activeIdx =
+                Math.min(
+                    activeIdx,
+                    db.slides.length - 1
+                );
+
+            saveDb();
+            render();
+        }
+
+
+        function addCard() {
+
+            const slide =
+                db.slides[activeIdx];
+
+            if (!slide) return;
+
+            if (slide.cards.length >= MAX_CARDS) {
+
+                alert(
+                    `Максимум ${MAX_CARDS} карточек на слайд.`
+                );
+
+                return;
+            }
+
+            const imageInput =
+                document
+                    .getElementById('cardImg')
+                    .value
+                    .trim();
+
+            slide.cards.push({
+
+                date:
+                    document
+                        .getElementById('cardDate')
+                        .value
+                        .trim(),
+
+                title:
+                    document
+                        .getElementById('cardTitle')
+                        .value
+                        .trim(),
+
+                desc:
+                    document
+                        .getElementById('cardDesc')
+                        .value
+                        .trim(),
+
+                img:
+                    tempCardImage ||
+                    imageInput
+            });
+
+            tempCardImage = "";
+
+            document.getElementById('cardDate').value = "";
+            document.getElementById('cardTitle').value = "";
+            document.getElementById('cardDesc').value = "";
+            document.getElementById('cardImg').value = "";
+
+            dropZone.style.borderColor = "";
+
+            dropZone.textContent =
+                "Перетащите изображение сюда или кликните для выбора";
+
+            fileInputCard.value = "";
+
+            saveDb();
+            render();
+        }
+
+
+        function duplicateCard(cIdx) {
+
+            const slide =
+                db.slides[activeIdx];
+
+            if (!slide || !slide.cards[cIdx]) {
+                return;
+            }
+
+            if (slide.cards.length >= MAX_CARDS) {
+
+                alert(
+                    `Максимум ${MAX_CARDS} карточек на слайд.`
+                );
+
+                return;
+            }
+
+            const copy =
+                JSON.parse(
+                    JSON.stringify(
+                        slide.cards[cIdx]
+                    )
+                );
+
+            slide.cards.splice(
+                cIdx + 1,
+                0,
+                copy
+            );
+
+            saveDb();
+            render();
+        }
+
+
+        function delCard(cIdx) {
+
+            const slide =
+                db.slides[activeIdx];
+
+            if (!slide) return;
+
+            slide.cards.splice(
+                cIdx,
+                1
+            );
+
+            saveDb();
+            render();
+        }
+
+
+        function handleDragOver(event) {
+
+            event.preventDefault();
+
+            dropZone.classList.add(
+                'dragover'
+            );
+        }
+
+
+        function handleDragLeave(event) {
+
+            event.preventDefault();
+
+            dropZone.classList.remove(
+                'dragover'
+            );
+        }
+
+
+        function handleDrop(event) {
+
+            event.preventDefault();
+
+            dropZone.classList.remove(
+                'dragover'
+            );
+
+            const file =
+                event.dataTransfer.files?.[0];
+
+            if (file) {
+                processFile(file);
+            }
+        }
+
+
+        function handleCardFileSelect(event) {
+
+            const file =
+                event.target.files?.[0];
+
+            if (file) {
+                processFile(file);
+            }
+        }
+
+
+        function processFile(file) {
+
+            if (!file.type.startsWith('image/')) {
+
+                alert(
+                    'Можно загрузить только изображение.'
+                );
+
+                return;
+            }
+
+            const reader =
+                new FileReader();
+
+            reader.onload = event => {
+
+                tempCardImage =
+                    event.target.result;
+
+                document.getElementById(
+                    'cardImg'
+                ).value =
+                    "[Загружено локальное фото]";
+
+                dropZone.style.borderColor =
+                    "var(--accent-color)";
+
+                dropZone.textContent =
+                    "Файл прикреплен!";
+            };
+
+            reader.onerror = () => {
+
+                alert(
+                    'Не удалось прочитать файл.'
+                );
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+
+        function onCardDragStart(event, idx) {
+
+            draggedCardIdx = idx;
+
+            event.currentTarget.classList.add(
+                'dragging'
+            );
+        }
+
+
+        function onCardDragEnd(event) {
+
+            event.currentTarget.classList.remove(
+                'dragging'
+            );
+
+            document
+                .querySelectorAll('.admin-card-item')
+                .forEach(el =>
+                    el.classList.remove(
+                        'drag-over'
+                    )
+                );
+        }
+
+
+        function onCardDragOver(event) {
+
+            event.preventDefault();
+
+            const targetItem =
+                event.target.closest(
+                    '.admin-card-item'
+                );
+
+            if (!targetItem) return;
+
+            document
+                .querySelectorAll('.admin-card-item')
+                .forEach(el =>
+                    el.classList.remove(
+                        'drag-over'
+                    )
+                );
+
+            targetItem.classList.add(
+                'drag-over'
+            );
+        }
+
+
+        function onCardDrop(event, targetIdx) {
+
+            event.preventDefault();
+
+            if (
+                draggedCardIdx === null ||
+                draggedCardIdx === targetIdx
+            ) {
+
+                draggedCardIdx = null;
+
+                return;
+            }
+
+            const cards =
+                db.slides[activeIdx].cards;
+
+            const [movedItem] =
+                cards.splice(
+                    draggedCardIdx,
+                    1
+                );
+
+            cards.splice(
+                targetIdx,
+                0,
+                movedItem
+            );
+
+            draggedCardIdx = null;
+
+            saveDb();
+            render();
+        }
+
+
+        /*
+         * =========================================================
+         * РЕЗЕРВНАЯ КОПИЯ ОТЧЁТА
+         * =========================================================
+         *
+         * В код записывается весь объект db:
+         * - цвет;
+         * - все слайды;
+         * - заголовки;
+         * - футеры;
+         * - карточки;
+         * - порядок карточек;
+         * - изображения;
+         *
+         * Локальные фотографии тоже сохраняются,
+         * потому что они уже находятся внутри db
+         * как Data URL.
+         */
+
+
+        function encodeBackup(data) {
+
+            const json =
+                JSON.stringify({
+                    version: 1,
+                    db: data
+                });
+
+            const bytes =
+                new TextEncoder().encode(json);
+
+            let binary = '';
+
+            bytes.forEach(byte => {
+                binary += String.fromCharCode(byte);
+            });
+
+            return btoa(binary);
+        }
+
+
+        function decodeBackup(code) {
+
+            try {
+
+                const binary =
+                    atob(
+                        code
+                            .trim()
+                            .replace(/\s/g, '')
+                    );
+
+                const bytes =
+                    Uint8Array.from(
+                        binary,
+                        char => char.charCodeAt(0)
+                    );
+
+                const json =
+                    new TextDecoder().decode(bytes);
+
+                const parsed =
+                    JSON.parse(json);
+
+                if (
+                    !parsed ||
+                    parsed.version !== 1 ||
+                    !parsed.db ||
+                    !Array.isArray(
+                        parsed.db.slides
+                    )
+                ) {
+                    throw new Error(
+                        'Неверный формат резервной копии'
+                    );
+                }
+
+                return parsed.db;
+
+            } catch (error) {
+
+                console.error(
+                    'Ошибка восстановления:',
+                    error
+                );
+
+                return null;
+            }
+        }
+
+
+        async function createBackup() {
+
+            const code =
+                encodeBackup(db);
+
+            const field =
+                document.getElementById(
+                    'backupCode'
+                );
+
+            const status =
+                document.getElementById(
+                    'backupStatus'
+                );
+
+            field.value = code;
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    code
+                );
+
+                status.textContent =
+                    'Код создан и скопирован в буфер обмена.';
+
+            } catch (error) {
+
+                status.textContent =
+                    'Код создан. Скопируйте его вручную.';
+            }
+        }
+
+
+        function restoreBackup() {
+
+            const field =
+                document.getElementById(
+                    'backupCode'
+                );
+
+            const status =
+                document.getElementById(
+                    'backupStatus'
+                );
+
+            const code =
+                field.value.trim();
+
+            if (!code) {
+
+                status.textContent =
+                    'Сначала вставьте код резервной копии.';
+
+                return;
+            }
+
+            const restoredDb =
+                decodeBackup(code);
+
+            if (!restoredDb) {
+
+                status.textContent =
+                    'Не удалось восстановить отчёт. Проверьте код.';
+
+                return;
+            }
+
+            const confirmed =
+                confirm(
+                    'Текущие данные будут заменены данными из резервной копии. Продолжить?'
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            db = restoredDb;
+
+            activeIdx = Math.min(
+                activeIdx,
+                db.slides.length - 1
+            );
+
+            saveDb();
+            render();
+
+            status.textContent =
+                'Отчёт успешно восстановлен.';
+        }
+
+
+        async function exportCurrentSlidePng() {
+
+            const slideEl =
+                document.querySelector(
+                    '.slide-container'
+                );
+
+            if (!slideEl) {
+
+                alert(
+                    'Нет слайда для сохранения.'
+                );
+
+                return;
+            }
+
+            const body =
+                document.getElementById(
+                    'mainBody'
+                );
+
+            body.classList.add(
+                'export-mode'
+            );
+
+            try {
+
+                await new Promise(
+                    resolve =>
+                        requestAnimationFrame(
+                            resolve
+                        )
+                );
+
+
+                const tempCanvases = [];
+
+                slideEl
+                    .querySelectorAll('.card-img')
+                    .forEach(img => {
+
+                        if (
+                            !img.complete ||
+                            !img.naturalWidth
+                        ) {
+                            return;
+                        }
+
+                        const container =
+                            img.closest(
+                                '.card-img-container'
+                            );
+
+                        const width =
+                            container.offsetWidth;
+
+                        const height =
+                            container.offsetHeight;
+
+                        const canvas =
+                            document.createElement(
+                                'canvas'
+                            );
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        canvas.style.position =
+                            'absolute';
+
+                        canvas.style.top = '0';
+                        canvas.style.left = '0';
+                        canvas.style.width = '100%';
+                        canvas.style.height = '100%';
+                        canvas.style.display = 'block';
+
+                        const ctx =
+                            canvas.getContext(
+                                '2d'
+                            );
+
+                        const scale =
+                            Math.max(
+                                width / img.naturalWidth,
+                                height / img.naturalHeight
+                            );
+
+                        const drawWidth =
+                            img.naturalWidth *
+                            scale;
+
+                        const drawHeight =
+                            img.naturalHeight *
+                            scale;
+
+                        const x =
+                            (width - drawWidth) / 2;
+
+                        const y =
+                            (height - drawHeight) / 2;
+
+                        ctx.drawImage(
+                            img,
+                            x,
+                            y,
+                            drawWidth,
+                            drawHeight
+                        );
+
+                        img.style.visibility =
+                            'hidden';
+
+                        container.appendChild(
+                            canvas
+                        );
+
+                        tempCanvases.push({
+                            canvas,
+                            img
+                        });
+                    });
+
+
+                const mainCanvas =
+                    await html2canvas(
+                        slideEl,
+                        {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: null,
+                            logging: false
+                        }
+                    );
+
+
+                tempCanvases.forEach(item => {
+
+                    item.img.style.visibility =
+                        '';
+
+                    item.canvas.remove();
+                });
+
+
+                downloadCanvas(
+                    mainCanvas,
+                    `Slide_${activeIdx + 1}.png`
+                );
+
+
+                const shadowCanvas =
+                    document.createElement(
+                        'canvas'
+                    );
+
+                shadowCanvas.width =
+                    1280 * 2;
+
+                shadowCanvas.height =
+                    720 * 2;
+
+                const ctx =
+                    shadowCanvas.getContext(
+                        '2d'
+                    );
+
+                ctx.clearRect(
+                    0,
+                    0,
+                    shadowCanvas.width,
+                    shadowCanvas.height
+                );
+
+                const cards =
+                    slideEl.querySelectorAll(
+                        '.card'
+                    );
+
+                const slideRect =
+                    slideEl.getBoundingClientRect();
+
+                const scaleX =
+                    slideRect.width / 1280;
+
+                const scaleY =
+                    slideRect.height / 720;
+
+                cards.forEach(card => {
+
+                    const cardRect =
+                        card.getBoundingClientRect();
+
+                    const x =
+                        (cardRect.left -
+                            slideRect.left) /
+                        scaleX;
+
+                    const y =
+                        (cardRect.top -
+                            slideRect.top) /
+                        scaleY;
+
+                    const width =
+                        cardRect.width /
+                        scaleX;
+
+                    const height =
+                        cardRect.height /
+                        scaleY;
+
+                    const canvasX =
+                        x * 2;
+
+                    const canvasY =
+                        y * 2;
+
+                    const canvasWidth =
+                        width * 2;
+
+                    const canvasHeight =
+                        height * 2;
+
+                    const radius =
+                        12 * 2;
+
+
+                    ctx.save();
+
+                    ctx.shadowColor =
+                        'rgba(0, 0, 0, 0.22)';
+
+                    ctx.shadowBlur = 28;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 8;
+
+                    ctx.fillStyle =
+                        'rgba(0, 0, 0, 0.18)';
+
+                    drawRoundedRect(
+                        ctx,
+                        canvasX,
+                        canvasY,
+                        canvasWidth,
+                        canvasHeight,
+                        radius
+                    );
+
+                    ctx.fill();
+
+                    ctx.restore();
+
+
+                    ctx.save();
+
+                    ctx.globalCompositeOperation =
+                        'destination-out';
+
+                    drawRoundedRect(
+                        ctx,
+                        canvasX,
+                        canvasY,
+                        canvasWidth,
+                        canvasHeight,
+                        radius
+                    );
+
+                    ctx.fill();
+
+                    ctx.restore();
+                });
+
+
+                downloadCanvas(
+                    shadowCanvas,
+                    `Slide_${activeIdx + 1}_shadow.png`
+                );
+
+                body.classList.remove(
+                    'export-mode'
+                );
+
+                alert(
+                    `Готово!\n\n` +
+                    `Сохранены:\n` +
+                    `• Slide_${activeIdx + 1}.png\n` +
+                    `• Slide_${activeIdx + 1}_shadow.png`
+                );
+
+            } catch (error) {
+
+                console.error(
+                    'Ошибка экспорта:',
+                    error
+                );
+
+                alert(
+                    `Ошибка при сохранении PNG:\n${error.message || error}`
+                );
+
+                body.classList.remove(
+                    'export-mode'
+                );
+            }
+        }
+
+
+        function drawRoundedRect(
+            ctx,
+            x,
+            y,
+            width,
+            height,
+            radius
+        ) {
+
+            const r =
+                Math.min(
+                    radius,
+                    width / 2,
+                    height / 2
+                );
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x + r,
+                y
+            );
+
+            ctx.lineTo(
+                x + width - r,
+                y
+            );
+
+            ctx.quadraticCurveTo(
+                x + width,
+                y,
+                x + width,
+                y + r
+            );
+
+            ctx.lineTo(
+                x + width,
+                y + height - r
+            );
+
+            ctx.quadraticCurveTo(
+                x + width,
+                y + height,
+                x + width - r,
+                y + height
+            );
+
+            ctx.lineTo(
+                x + r,
+                y + height
+            );
+
+            ctx.quadraticCurveTo(
+                x,
+                y + height,
+                x,
+                y + height - r
+            );
+
+            ctx.lineTo(
+                x,
+                y + r
+            );
+
+            ctx.quadraticCurveTo(
+                x,
+                y,
+                x + r,
+                y
+            );
+
+            ctx.closePath();
+        }
+
+
+        function downloadCanvas(
+            canvas,
+            filename
+        ) {
+
+            const link =
+                document.createElement(
+                    'a'
+                );
+
+            link.download =
+                filename;
+
+            link.href =
+                canvas.toDataURL(
+                    'image/png'
+                );
+
+            document.body.appendChild(
+                link
+            );
+
+            link.click();
+
+            link.remove();
+        }
+
+
+        function renderAdminCardsList() {
+
+            const listContainer =
+                document.getElementById(
+                    'adminCardsList'
+                );
+
+            const cards =
+                db.slides[activeIdx]?.cards ||
+                [];
+
+            listContainer.replaceChildren();
+
+            if (cards.length === 0) {
+
+                const empty =
+                    document.createElement(
+                        'span'
+                    );
+
+                empty.className =
+                    'admin-empty';
+
+                empty.textContent =
+                    'Нет карточек на этом слайде';
+
+                listContainer.appendChild(
+                    empty
+                );
+
+                return;
+            }
+
+            cards.forEach((card, idx) => {
+
+                const item =
+                    document.createElement(
+                        'div'
+                    );
+
+                item.className =
+                    'admin-card-item';
+
+                item.draggable = true;
+
+                item.addEventListener(
+                    'dragstart',
+                    event =>
+                        onCardDragStart(
+                            event,
+                            idx
+                        )
+                );
+
+                item.addEventListener(
+                    'dragend',
+                    onCardDragEnd
+                );
+
+                item.addEventListener(
+                    'dragover',
+                    onCardDragOver
+                );
+
+                item.addEventListener(
+                    'drop',
+                    event =>
+                        onCardDrop(
+                            event,
+                            idx
+                        )
+                );
+
+
+                const title =
+                    document.createElement(
+                        'span'
+                    );
+
+                title.className =
+                    'admin-card-title';
+
+                title.innerHTML =
+                    `<span class="drag-handle">☰</span>
+                     <b>#${idx + 1}</b>
+                     ${escapeHtml(card.title || 'Без названия')}`;
+
+
+                const actions =
+                    document.createElement(
+                        'div'
+                    );
+
+                actions.className =
+                    'admin-actions-group';
+
+
+                const duplicateButton =
+                    document.createElement(
+                        'button'
+                    );
+
+                duplicateButton.className =
+                    'action-btn dup';
+
+                duplicateButton.type =
+                    'button';
+
+                duplicateButton.title =
+                    'Дублировать';
+
+                duplicateButton.textContent =
+                    '📋';
+
+                duplicateButton.addEventListener(
+                    'click',
+                    () =>
+                        duplicateCard(idx)
+                );
+
+
+                const deleteButton =
+                    document.createElement(
+                        'button'
+                    );
+
+                deleteButton.className =
+                    'action-btn del';
+
+                deleteButton.type =
+                    'button';
+
+                deleteButton.textContent =
+                    'Удалить';
+
+                deleteButton.addEventListener(
+                    'click',
+                    () =>
+                        delCard(idx)
+                );
+
+
+                actions.append(
+                    duplicateButton,
+                    deleteButton
+                );
+
+                item.append(
+                    title,
+                    actions
+                );
+
+                listContainer.appendChild(
+                    item
+                );
+            });
+        }
+
+
+        function createCardHtml(card) {
+
+            const imageSrc =
+                card.img &&
+                !card.img.startsWith('[')
+                    ? escapeHtml(card.img)
+                    : 'https://placehold.co/400x300?text=Нет+фото';
+
+            return `
+                <article class="card">
+
+                    <div class="card-img-container">
+
+                        <img
+                            src="${imageSrc}"
+                            class="card-img"
+                            alt="${escapeHtml(card.title || 'Фото события')}"
+                            crossorigin="anonymous"
+                            onerror="this.src='https://placehold.co/400x300?text=Нет+фото'"
+                        >
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div>
+
+                            <div class="card-date">
+                                ${escapeHtml(card.date || '')}
+                            </div>
+
+                            <h3 class="card-title">
+                                ${escapeHtml(card.title || '')}
+                            </h3>
+
+                            <p class="card-desc">
+                                ${escapeHtml(card.desc || '')}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            `;
+        }
+
+
+        function buildGridContent(cards) {
+
+            const count =
+                cards.length;
+
+            if (count === 0) {
+                return '';
+            }
+
+            if (count === 1) {
+
+                return `
+                    <div class="layout-1">
+                        ${createCardHtml(cards[0])}
+                    </div>
+                `;
+            }
+
+            if (count === 2) {
+
+                return `
+                    <div class="layout-2">
+                        ${cards.map(createCardHtml).join('')}
+                    </div>
+                `;
+            }
+
+            const rowsConfig = {
+
+                3: [3],
+                4: [2, 2],
+                5: [3, 2],
+                6: [3, 3],
+                7: [4, 3],
+                8: [4, 4]
+
+            }[count];
+
+            if (!rowsConfig) {
+                return '';
+            }
+
+            let html =
+                '<div class="layout-grid">';
+
+            let currentIndex = 0;
+
+            rowsConfig.forEach(perRow => {
+
+                const rowCards =
+                    cards.slice(
+                        currentIndex,
+                        currentIndex + perRow
+                    );
+
+                currentIndex += perRow;
+
+                html += `
+                    <div class="grid-row">
+                        ${rowCards.map(createCardHtml).join('')}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            return html;
+        }
+
+
+        function render() {
+
+            const slide =
+                db.slides[activeIdx];
+
+            if (!slide) {
+                return;
+            }
+
+            const tabs =
+                document.getElementById(
+                    'tabsList'
+                );
+
+            tabs.replaceChildren();
+
+
+            db.slides.forEach(
+                (currentSlide, index) => {
+
+                    const button =
+                        document.createElement(
+                            'button'
+                        );
+
+                    button.className =
+                        `slide-tab ${
+                            index === activeIdx
+                                ? 'active'
+                                : ''
+                        }`;
+
+                    button.type =
+                        'button';
+
+                    button.textContent =
+                        `Слайд ${index + 1}`;
+
+                    button.addEventListener(
+                        'click',
+                        () => {
+
+                            activeIdx =
+                                index;
+
+                            render();
+                        }
+                    );
+
+                    tabs.appendChild(
+                        button
+                    );
+                }
+            );
+
+
+            document.getElementById(
+                'editMainTitle'
+            ).value =
+                slide.title;
+
+            document.getElementById(
+                'editFooter'
+            ).value =
+                slide.footer;
+
+
+            document.documentElement.style.setProperty(
+                '--accent-color',
+                db.accent
+            );
+
+            document.getElementById(
+                'colorPicker'
+            ).value =
+                db.accent;
+
+
+            renderAdminCardsList();
+
+
+            const viewport =
+                document.getElementById(
+                    'slidesViewport'
+                );
+
+            viewport.replaceChildren();
+
+
+            const slideElement =
+                document.createElement(
+                    'div'
+                );
+
+            slideElement.className =
+                'slide-container';
+
+
+            slideElement.innerHTML = `
+
+                <div class="slide-header-wrapper">
+
+                    <h2 class="slide-title">
+                        ${escapeHtml(slide.title)}
+                    </h2>
+
+                </div>
+
+
+                <div class="content-area">
+
+                    ${buildGridContent(
+                        slide.cards
+                    )}
+
+                </div>
+
+
+                <div class="slide-footer">
+
+                    <span class="footer-text">
+                        ${escapeHtml(slide.footer)}
+                    </span>
+
+                    <span class="page-number">
+                        Слайд ${activeIdx + 1}
+                        из ${db.slides.length}
+                    </span>
+
+                </div>
+            `;
+
+
+            viewport.appendChild(
+                slideElement
+            );
+        }
+
+
+        document.documentElement.style.setProperty(
+            '--accent-color',
+            db.accent
+        );
+
+        render();
+
+    </script>
+
+</body>
+</html>
+```
